@@ -64,11 +64,16 @@ impl CPalRecorder {
             thread::Builder::new()
                 .name("cpal-recorder".into())
                 .spawn(move || {
-                    let device = cpal::default_input_device().expect("Can't acquire input device");
+                    let device = cpal::input_devices()
+                        .find(|d| {
+                            println!("{}", d.name());
+                            d.name().starts_with("Output")
+                        })
+                        .expect("Not found");
 
                     let format = cpal::Format {
                         channels: 2,
-                        sample_rate: cpal::SampleRate(rate as u32),
+                        sample_rate: cpal::SampleRate(48000),
                         data_type: cpal::SampleFormat::F32,
                     };
 
