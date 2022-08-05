@@ -69,11 +69,11 @@ impl CPalRecorder {
                             println!("{}", d.name());
                             d.name().starts_with("Output")
                         })
-                        .expect("Not found");
+                        .expect("Not found. Have an input device named 'Output' that pipes the output back.");
 
                     let format = cpal::Format {
                         channels: 2,
-                        sample_rate: cpal::SampleRate(48000),
+                        sample_rate: device.default_input_format().unwrap().sample_rate,
                         data_type: cpal::SampleFormat::F32,
                     };
 
