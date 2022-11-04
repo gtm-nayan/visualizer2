@@ -105,28 +105,28 @@ pub static CONFIG: ezconf::Config = ezconf::INIT;
 /// * `./config/visualizer.toml`
 /// * Defaults from code
 pub fn default_config() {
-    CONFIG
-        .init(
-            [
-                ezconf::Source::File("visualizer.toml"),
-                ezconf::Source::File("config/visualizer.toml"),
-            ]
-            .iter(),
-        )
-        .expect("Can't load config");
+	CONFIG
+		.init(
+			[
+				ezconf::Source::File("visualizer.toml"),
+				ezconf::Source::File("config/visualizer.toml"),
+			]
+			.iter(),
+		)
+		.expect("Can't load config");
 }
 
 /// Initialize logger
 ///
 /// By default, enable debug output in debug-builds.
 pub fn default_log() {
-    #[cfg(not(debug_assertions))]
-    env_logger::init();
+	#[cfg(not(debug_assertions))]
+	env_logger::init();
 
-    #[cfg(debug_assertions)]
-    env_logger::Builder::from_default_env()
-        .filter_level(log::LevelFilter::Debug)
-        .init();
+	#[cfg(debug_assertions)]
+	env_logger::Builder::from_default_env()
+		.filter_level(log::LevelFilter::Debug)
+		.init();
 
-    color_backtrace::install();
+	color_backtrace::install();
 }
