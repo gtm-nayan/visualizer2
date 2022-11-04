@@ -1,5 +1,5 @@
 use crate::analyzer;
-use std::thread;
+use std::fmt::Debug;
 
 #[derive(Debug, Default)]
 pub struct CPalBuilder {
@@ -37,10 +37,19 @@ impl CPalBuilder {
 	}
 }
 
-#[derive(Debug)]
 pub struct CPalRecorder {
 	rate: usize,
+	_stream: cpal::Stream,
 	buffer: analyzer::SampleBuffer,
+}
+
+impl Debug for CPalRecorder {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		f.debug_struct("CPalRecorder")
+			.field("rate", &self.rate)
+			.field("buffer", &self.buffer)
+			.finish()
+	}
 }
 
 impl CPalRecorder {
@@ -57,64 +66,44 @@ impl CPalRecorder {
 
 		let buf = analyzer::SampleBuffer::new(buffer_size, rate);
 
-		{
+		let stream = {
+			use cpal::traits::*;
 			let buf = buf.clone();
 			let mut chunk_buffer = vec![[0.0; 2]; read_size];
 
-			thread::Builder::new()
-				.name("cpal-recorder".into())
-				.spawn(move || {
-					let device = cpal::input_devices()
-						.find(|d| {
-							println!("{}", d.name());
-							d.name().starts_with("Output")
-						})
-						.expect(
-							"Not found. Have an input device named 'Output' that pipes the output back.",
-						);
+			let device = cpal::default_host().default_output_device().unwrap();
 
-					let format = device.default_input_format().unwrap();
+			let format = device.default_output_config().unwrap();
 
-					let event_loop = cpal::EventLoop::new();
-					let stream_id = event_loop
-						.build_input_stream(&device, &format)
-						.expect("Failed to build input stream");
-					event_loop.play_stream(stream_id);
+			let error_callback = move |e| eprintln!("{e}");
 
-					log::debug!("CPal:");
-					log::debug!("    Sample Rate = {:6}", rate);
-					log::debug!("    Read Size   = {:6}", read_size);
-					log::debug!("    Buffer Size = {:6}", buffer_size);
-					log::debug!("    Device      = \"{}\"", device.name());
+			let data_callback = move |buffer: &[f32], _: &'_ _| {
+				for chunk in buffer.chunks(chunk_buffer.len() * 2) {
+					let len = chunk.len() / 2;
 
-					event_loop.run(|_, data| match data {
-						cpal::StreamData::Input {
-							buffer: cpal::UnknownTypeInputBuffer::F32(buffer),
-						} => {
-							for chunk in buffer.chunks(chunk_buffer.len() * 2) {
-								let len = chunk.len() / 2;
-
-								for ref mut p in chunk_buffer.iter_mut().zip(chunk.chunks_exact(2))
-								{
-									match p {
-										(ref mut b, [l, r]) => **b = [*l, *r],
-										_ => unreachable!(),
-									}
-								}
-
-								buf.push(&chunk_buffer[..len]);
-							}
+					for ref mut p in chunk_buffer.iter_mut().zip(chunk.chunks_exact(2)) {
+						match p {
+							(ref mut b, [l, r]) => **b = [*l, *r],
+							_ => unreachable!(),
 						}
-						cpal::StreamData::Input { .. } => {
-							panic!("Buffer type does not match configuration!");
-						}
-						cpal::StreamData::Output { .. } => (),
-					});
-				})
+					}
+
+					buf.push(&chunk_buffer[..len]);
+				}
+			};
+			let stream = device
+				.build_input_stream(&format.config(), data_callback, error_callback)
 				.unwrap();
-		}
 
-		CPalRecorder { rate, buffer: buf }
+			stream.play().unwrap();
+			stream
+		};
+
+		CPalRecorder {
+			rate,
+			_stream: stream,
+			buffer: buf,
+		}
 	}
 }
 
