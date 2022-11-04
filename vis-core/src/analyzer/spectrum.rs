@@ -422,7 +422,7 @@ mod tests {
 			.iter()
 			.cloned()
 			{
-				println!("Parameters: N: {:5}, Range: {:7.2}-{:7.2}", n, l, h);
+				println!("Parameters: N: {n:5}, Range: {l:7.2}-{h:7.2}");
 				let spectrum = Spectrum::new((0..n).map(|x| x as f32).collect::<Vec<_>>(), l, h);
 				check_integrity(&spectrum);
 

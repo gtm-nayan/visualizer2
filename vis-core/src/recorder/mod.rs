@@ -58,7 +58,7 @@ impl RecorderBuilder {
 		let recorder = self
 			.recorder
 			.as_ref()
-			.map(|s| s.clone())
+			.cloned()
 			.unwrap_or_else(|| crate::CONFIG.get_or("audio.recorder", "cpal".to_string()));
 
 		match &*recorder {
@@ -67,7 +67,6 @@ impl RecorderBuilder {
 				rate: self.rate,
 				buffer_size: self.buffer_size,
 				read_size: self.read_size,
-				..Default::default()
 			}
 			.build(),
 

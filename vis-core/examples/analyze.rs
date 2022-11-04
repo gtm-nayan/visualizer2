@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 extern crate log;
 extern crate vis_core;
 
@@ -41,8 +43,8 @@ fn main() {
 			for _ in 0..info.volume as usize {
 				print!("#");
 			}
-			println!("");
+			println!();
 		});
-		std::thread::sleep_ms(30);
+		std::thread::sleep(Duration::from_millis(30));
 	}
 }

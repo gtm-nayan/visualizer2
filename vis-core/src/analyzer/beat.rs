@@ -192,7 +192,7 @@ impl BeatDetector {
 			.mean();
 
 		// Decay beat_delta to allow quieter beats to be detected
-		self.last_beat_delta = self.last_beat_delta * self.decay;
+		self.last_beat_delta *= self.decay;
 		let delta = volume - self.last_volume;
 
 		let isbeat = if delta < 0.0 && self.last_delta > 0.0 {

@@ -72,10 +72,8 @@ where
 			if num != 0 {
 				f.detach_analyzer(num);
 			}
-		} else {
-			if let Some(num) = crate::CONFIG.get("audio.conversions") {
-				f.detach_analyzer(num);
-			}
+		} else if let Some(num) = crate::CONFIG.get("audio.conversions") {
+			f.detach_analyzer(num);
 		}
 
 		f

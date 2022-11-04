@@ -136,7 +136,7 @@ mod tests {
 		buf.push(&[[1.0; 2]; 8]);
 
 		for s in buf.iter(16, 1) {
-			println!("{:?}", s);
+			println!("{s:?}");
 		}
 	}
 
