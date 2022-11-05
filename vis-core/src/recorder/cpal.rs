@@ -67,7 +67,7 @@ impl CPalRecorder {
 		let buf = analyzer::SampleBuffer::new(buffer_size, rate);
 
 		let stream = {
-			use cpal::traits::*;
+			use cpal::{traits::*, StreamConfig};
 			let buf = buf.clone();
 			let mut chunk_buffer = vec![[0.0; 2]; read_size];
 
@@ -91,8 +91,17 @@ impl CPalRecorder {
 					buf.push(&chunk_buffer[..len]);
 				}
 			};
+
 			let stream = device
-				.build_input_stream(&format.config(), data_callback, error_callback)
+				.build_input_stream(
+					&StreamConfig {
+						channels: 2,
+						sample_rate: format.sample_rate(),
+						buffer_size: cpal::BufferSize::Fixed(buffer_size as u32),
+					},
+					data_callback,
+					error_callback,
+				)
 				.unwrap();
 
 			stream.play().unwrap();
