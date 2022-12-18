@@ -79,16 +79,8 @@ impl CPalRecorder {
 
 			let data_callback = move |buffer: &[f32], _: &'_ _| {
 				for chunk in buffer.chunks(chunk_buffer.len() * 2) {
-					let len = chunk.len() / 2;
-
-					for ref mut p in chunk_buffer.iter_mut().zip(chunk.chunks_exact(2)) {
-						match p {
-							(ref mut b, [l, r]) => **b = [*l, *r],
-							_ => unreachable!(),
-						}
-					}
-
-					buf.push(&chunk_buffer[..len]);
+					chunk_buffer.splice(.., chunk.array_chunks::<2>().copied());
+					buf.push(&chunk_buffer);
 				}
 			};
 

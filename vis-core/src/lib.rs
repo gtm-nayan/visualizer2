@@ -1,3 +1,4 @@
+#![feature(array_chunks)]
 //! A framework for audio-visualization in Rust.
 //!
 //! # Example
